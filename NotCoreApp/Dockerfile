@@ -1,5 +1,10 @@
 # NotCoreWebz - 预配置权限的 .NET 运行容器
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine
+
+# 使用ARG传递.NET版本
+ARG DOTNET_VERSION=10.0
+
+# 基础镜像阶段
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS base
 
 # 创建应用用户和组
 ARG USER_ID=1000
