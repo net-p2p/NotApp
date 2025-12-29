@@ -6,6 +6,18 @@ ARG DOTNET_VERSION=10.0
 # 基础镜像阶段
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS base
 
+# 完整全球化支持
+RUN apk add --no-cache \
+    icu-libs \
+    icu-data-full \
+    tzdata \
+    curl \
+    bash
+
+# 设置时区
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
+
 # 创建应用用户和组
 ARG USER_ID=1000
 ARG GROUP_ID=1000
@@ -34,8 +46,13 @@ RUN chown -R appuser:appgroup /app && \
 # 环境变量
 ENV APP_DLL=NotApp.dll                                  # 运行主程序
 ENV TZ=Asia/Shanghai                                    # 设置中国时区
+ENV LC_ALL=zh_CN.UTF-8                                  # 中文语言
 ENV LANG=zh_CN.UTF-8                                    # 中文语言
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false         # 禁止全球化时区
+ENV DOTNET_RUNNING_IN_CONTAINER=true                    # 表示是在容器中运行
+
+# 验证ICU安装
+RUN dotnet --info | grep -A5 "Globalization"
 
 # 暴露端口
 EXPOSE 8080
