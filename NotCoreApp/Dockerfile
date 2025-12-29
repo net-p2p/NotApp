@@ -32,9 +32,10 @@ RUN chown -R appuser:appgroup /app && \
     chmod -R 775 /app
 
 # 环境变量
-ENV APP_DLL=NotApp.dll                  # 运行主程序
-ENV TZ=Asia/Shanghai                    # 设置中国时区
-ENV LANG=zh_CN.UTF-8                    # 中文语言
+ENV APP_DLL=NotApp.dll                                  # 运行主程序
+ENV TZ=Asia/Shanghai                                    # 设置中国时区
+ENV LANG=zh_CN.UTF-8                                    # 中文语言
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false         # 禁止全球化时区
 
 # 暴露端口
 EXPOSE 8080
