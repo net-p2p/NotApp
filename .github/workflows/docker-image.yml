@@ -16,7 +16,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ vars.DOCKER_HUB_USERNAME }}/NowApp
+  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/NowApp
 
 jobs:
   build-multi-version:
@@ -38,8 +38,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ vars.DOCKER_HUB_USERNAME }}
-          password: ${{ vars.DOCKER_HUB_ACCESS_TOKEN }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       - name: Generate tags
         id: tags
