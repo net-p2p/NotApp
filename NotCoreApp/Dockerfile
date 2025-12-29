@@ -17,15 +17,15 @@ RUN addgroup -g $GROUP_ID appgroup && \
 WORKDIR /app
 
 # 预先创建所有需要的目录
-RUN mkdir -p \
-    /app/bin \
-    /app/config \
-    /app/certs \
-    /app/Log \
-    /app/wwwroot \
-    /app/data \
-    /app/temp \
-    /app/uploads
+#RUN mkdir -p \
+    #/app/bin \
+    #/app/config \
+    #/app/certs \
+    #/app/Log \
+    #/app/wwwroot \
+    #/app/data \
+    #/app/temp \
+    #/app/uploads
 
 # 设置所有权和完全写入权限（所有目录 775）
 RUN chown -R appuser:appgroup /app && \
