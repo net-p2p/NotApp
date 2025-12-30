@@ -1,7 +1,10 @@
-# NotCoreWebz - 预配置权限的 .NET 运行容器
+# NotCore - 预配置权限的 .NET 运行容器
 
 # 使用ARG传递.NET版本
 ARG DOTNET_VERSION=10.0
+# 创建应用用户和组
+ARG USER_ID=1000
+ARG GROUP_ID=1000
 
 # 基础镜像阶段
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS base
@@ -20,10 +23,6 @@ RUN if [ -f /etc/alpine-release ]; then \
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
-# 创建应用用户和组
-ARG USER_ID=1000
-ARG GROUP_ID=1000
-
 # 创建用户（兼容Alpine和Debian）
 RUN if command -v addgroup >/dev/null 2>&1; then \
         # Alpine
@@ -31,8 +30,8 @@ RUN if command -v addgroup >/dev/null 2>&1; then \
         adduser -D -u $USER_ID -G appgroup appuser; \
     else \
         # Debian/Ubuntu
-        groupadd -g $GROUP_ID appgroup && \
-        useradd -u $USER_ID -g appgroup -m -s /bin/bash appuser; \
+        groupadd -g ${GROUP_ID} appgroup && \
+        useradd -u ${USER_ID} -g appgroup -m -s /bin/bash appuser; \
     fi
 
 # 创建工作目录
