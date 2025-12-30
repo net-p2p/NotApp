@@ -4,7 +4,7 @@
 ARG DOTNET_VERSION=10.0
 
 # 基础镜像阶段
-FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-alpine AS base
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS base
 
 # 完整全球化支持
 RUN apk add --no-cache \
@@ -49,6 +49,7 @@ ENV TZ=Asia/Shanghai                                    # 设置中国时区
 ENV LC_ALL=zh_CN.UTF-8                                  # 中文语言
 ENV LANG=zh_CN.UTF-8                                    # 中文语言
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false         # 禁止全球化时区
+ENV ASPNETCORE_HTTP_PORTS=''                            # 赋空值
 ENV DOTNET_RUNNING_IN_CONTAINER=true                    # 表示是在容器中运行
 
 # 验证ICU安装
