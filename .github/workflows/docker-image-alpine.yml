@@ -1,12 +1,12 @@
-name: Docker Build Multi-version
+name: Docker Build Multi-version-alpine
 
 on:
   workflow_dispatch:  # 手动触发
     inputs:
       versions:
-        description: 'Dotnet versions to build (comma separated)'
+        description: '生成多版本的-alpine'
         required: false
-        default: '6.0,7.0,8.0,9.0,10.0'
+        default: '6.0-10.0-alpine'
         type: string
       push:
         description: 'Push to registry'
@@ -18,13 +18,14 @@ env:
   REGISTRY: docker.io
   IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/notapp
   DOCKERFILE_DIR: NotCoreApp
+  Max_Version: '10.0'
 
 jobs:
   build-multi-version:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet_version: ['6.0', '7.0', '8.0', '9.0', '10.0']
+        dotnet_version: ['6.0-alpine', '7.0-alpine', '8.0-alpine', '9.0-alpine', '10.0-alpine']
       fail-fast: false
     
     steps:
@@ -49,7 +50,7 @@ jobs:
           echo "TAGS=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$VERSION" >> $GITHUB_OUTPUT
           
           # 如果是10.0，同时打latest标签
-          if [ "$VERSION" = "10.0" ]; then
+          if [ "$VERSION" = env.Max_Version ]; then
             echo "LATEST_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
           else
             echo "LATEST_TAG=" >> $GITHUB_OUTPUT
@@ -66,7 +67,7 @@ jobs:
             ${{ env.DOCKERFILE_DIR }}
           
           # 如果是10.0，也打latest标签
-          if [ "$VERSION" = "10.0" ]; then
+          if [ "$VERSION" = env.Max_Version ]; then
             docker tag ${{ steps.tags.outputs.TAGS }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           fi
 
@@ -77,6 +78,6 @@ jobs:
           docker push ${{ steps.tags.outputs.TAGS }}
           
           # 如果是10.0，推送latest标签
-          if [ "${{ matrix.dotnet_version }}" = "10.0" ]; then
+          if [ "${{ matrix.dotnet_version }}" = env.Max_Version ]; then
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           fi
