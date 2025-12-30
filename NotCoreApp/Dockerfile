@@ -4,7 +4,7 @@
 ARG DOTNET_VERSION=10.0
 # 创建应用用户和组
 ARG USER_ID=1000
-ARG GROUP_ID=1000
+#ARG GROUP_ID=1000
 
 # 基础镜像阶段
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS base
@@ -23,24 +23,18 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
 
 # 需要重新声明 ARG 才能在这个阶段使用
 ARG USER_ID
-ARG GROUP_ID
+#ARG GROUP_ID
 
 # 创建用户组（兼容Alpine和Debian）
-RUN if [ -f /etc/alpine-release ]; then \
-        if ! getent group appgroup >/dev/null 2>&1; then \
-            addgroup -g ${GROUP_ID} appgroup; \
-        fi; \
-        if ! id -u appuser >/dev/null 2>&1; then \
-            adduser -D -u ${USER_ID} -G appgroup appuser; \
-        fi; \
+RUN set -eux; \
+    if [ -f /etc/alpine-release ]; then \
+        addgroup appgroup || true; \
+        adduser -D -u ${USER_ID} -G appgroup appuser || true; \
     else \
-        if ! getent group appgroup >/dev/null 2>&1; then \
-            groupadd -g ${GROUP_ID} appgroup; \
-        fi; \
-        if ! id -u appuser >/dev/null 2>&1; then \
-            useradd -u ${USER_ID} -g appgroup -m -s /bin/bash appuser; \
-        fi; \
+        groupadd appgroup || true; \
+        useradd -u ${USER_ID} -g appgroup -m -s /bin/bash appuser || true; \
     fi
+
 
 # 创建工作目录
 WORKDIR /app
