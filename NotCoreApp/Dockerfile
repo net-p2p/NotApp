@@ -4,7 +4,7 @@
 ARG DOTNET_VERSION=10.0
 # 创建应用用户和组
 ARG USER_ID=1000
-#ARG GROUP_ID=1000
+ARG GROUP_ID=1000
 
 # 基础镜像阶段
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS base
@@ -23,20 +23,28 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
 
 # 需要重新声明 ARG 才能在这个阶段使用
 ARG USER_ID
-#ARG GROUP_ID
+ARG GROUP_ID
 
 # 创建用户组（兼容Alpine和Debian）
 RUN set -eux; \
-    if [ -f /etc/alpine-release ]; then \
-        getent group appgroup >/dev/null 2>&1 || addgroup appgroup; \
-        id -u appuser >/dev/null 2>&1 || adduser -D -u ${USER_ID} -G appgroup appuser; \
-    else \
-        getent group appgroup >/dev/null 2>&1 || groupadd appgroup; \
-        id -u appuser >/dev/null 2>&1 || useradd -u ${USER_ID} -g appgroup -m -s /bin/bash appuser; \
+    \
+    # 确保 GID 1000 存在
+    if ! getent group ${GROUP_ID} >/dev/null 2>&1; then \
+        if [ -f /etc/alpine-release ]; then \
+            addgroup -g ${GROUP_ID} appgroup; \
+        else \
+            groupadd -g ${GROUP_ID} appgroup; \
+        fi; \
+    fi; \
+    \
+    # 确保 UID 1000 存在（名字不重要）
+    if ! getent passwd ${USER_ID} >/dev/null 2>&1; then \
+        if [ -f /etc/alpine-release ]; then \
+            adduser -D -u ${USER_ID} -G ${GROUP_ID} appuser; \
+        else \
+            useradd -u ${USER_ID} -g ${GROUP_ID} -m -s /bin/bash appuser; \
+        fi; \
     fi
-
-
-RUN id appuser && getent group appgroup
 
 # 创建工作目录
 WORKDIR /app
@@ -48,7 +56,7 @@ RUN mkdir -p \
     /app/Temp
 
 # 设置所有权和完全写入权限（所有目录 775）
-RUN chown -R appuser:appgroup /app && \
+RUN chown -R ${USER_ID}:${GROUP_ID} /app && \
     chmod -R 775 /app
 
 # 环境变量
@@ -71,7 +79,7 @@ ENV DOTNET_RUNNING_IN_CONTAINER=true
 EXPOSE 8080
 
 # 切换到应用用户
-USER appuser
+USER ${USER_ID}
 
 # 启动应用
 ENTRYPOINT dotnet "${APP_DLL}"
