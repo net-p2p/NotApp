@@ -23,6 +23,10 @@ RUN if [ -f /etc/alpine-release ]; then \
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
+# 需要重新声明 ARG 才能在这个阶段使用
+ARG USER_ID
+ARG GROUP_ID
+
 # 调试：显示变量值
 RUN echo "USER_ID='${USER_ID}'" && \
     echo "GROUP_ID='${GROUP_ID}'"
