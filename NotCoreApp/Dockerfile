@@ -28,13 +28,15 @@ ARG USER_ID
 # 创建用户组（兼容Alpine和Debian）
 RUN set -eux; \
     if [ -f /etc/alpine-release ]; then \
-        addgroup appgroup || true; \
-        adduser -D -u ${USER_ID} -G appgroup appuser || true; \
+        getent group appgroup >/dev/null 2>&1 || addgroup appgroup; \
+        id -u appuser >/dev/null 2>&1 || adduser -D -u ${USER_ID} -G appgroup appuser; \
     else \
-        groupadd appgroup || true; \
-        useradd -u ${USER_ID} -g appgroup -m -s /bin/bash appuser || true; \
+        getent group appgroup >/dev/null 2>&1 || groupadd appgroup; \
+        id -u appuser >/dev/null 2>&1 || useradd -u ${USER_ID} -g appgroup -m -s /bin/bash appuser; \
     fi
 
+
+RUN id appuser && getent group appgroup
 
 # 创建工作目录
 WORKDIR /app
