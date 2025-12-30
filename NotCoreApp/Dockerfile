@@ -23,6 +23,9 @@ RUN if [ -f /etc/alpine-release ]; then \
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
+# 调试：显示变量值
+RUN echo "USER_ID='${USER_ID}'" && \
+    echo "GROUP_ID='${GROUP_ID}'"
 # 创建用户（兼容Alpine和Debian）
 RUN if [ -f /etc/alpine-release ]; then \
         # Alpine
