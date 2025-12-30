@@ -26,12 +26,12 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
 # 创建用户（兼容Alpine和Debian）
 RUN if [ -f /etc/alpine-release ]; then \
         # Alpine
-        addgroup -g $GROUP_ID appgroup && \
-        adduser -D -u $USER_ID -G appgroup appuser; \
+        addgroup -g ${GROUP_ID} appgroup && \
+        adduser -D -u ${USER_ID} -G appgroup appuser; \
     else \
         # Debian/Ubuntu
-        groupadd -g $GROUP_ID appgroup && \
-        useradd -u $USER_ID -g appgroup -m -s /bin/bash appuser; \
+        groupadd -g ${GROUP_ID} appgroup && \
+        useradd -u ${USER_ID} -g appgroup -m -s /bin/bash appuser; \
     fi
 
 # 创建工作目录
