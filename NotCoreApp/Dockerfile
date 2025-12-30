@@ -40,7 +40,8 @@ RUN set -eux; \
     # 确保 UID 1000 存在（名字不重要）
     if ! getent passwd ${USER_ID} >/dev/null 2>&1; then \
         if [ -f /etc/alpine-release ]; then \
-            adduser -D -u ${USER_ID} -G ${GROUP_ID} appuser; \
+            GROUP_NAME="$(getent group ${GROUP_ID} | cut -d: -f1)"; \
+            adduser -D -u ${USER_ID} -G "$GROUP_NAME" appuser; \
         else \
             useradd -u ${USER_ID} -g ${GROUP_ID} -m -s /bin/bash appuser; \
         fi; \
