@@ -24,14 +24,14 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone
 
 # 创建用户（兼容Alpine和Debian）
-RUN if command -v addgroup >/dev/null 2>&1; then \
+RUN if [ -f /etc/alpine-release ]; then \
         # Alpine
         addgroup -g $GROUP_ID appgroup && \
         adduser -D -u $USER_ID -G appgroup appuser; \
     else \
         # Debian/Ubuntu
-        groupadd -g ${GROUP_ID} appgroup && \
-        useradd -u ${USER_ID} -g appgroup -m -s /bin/bash appuser; \
+        groupadd -g $GROUP_ID appgroup && \
+        useradd -u $USER_ID -g appgroup -m -s /bin/bash appuser; \
     fi
 
 # 创建工作目录
