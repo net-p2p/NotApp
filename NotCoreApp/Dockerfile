@@ -24,8 +24,16 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
-RUN addgroup -g $GROUP_ID appgroup && \
-    adduser -D -u $USER_ID -G appgroup appuser
+# 创建用户（兼容Alpine和Debian）
+RUN if command -v addgroup >/dev/null 2>&1; then \
+        # Alpine
+        addgroup -g $GROUP_ID appgroup && \
+        adduser -D -u $USER_ID -G appgroup appuser; \
+    else \
+        # Debian/Ubuntu
+        groupadd -g $GROUP_ID appgroup && \
+        useradd -u $USER_ID -g appgroup -m -s /bin/bash appuser; \
+    fi
 
 # 创建工作目录
 WORKDIR /app
