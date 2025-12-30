@@ -3,8 +3,8 @@
 # 使用ARG传递.NET版本
 ARG DOTNET_VERSION=10.0
 # 创建应用用户和组
-ARG USER_ID=1000
-ARG GROUP_ID=1000
+ARG USER_ID=1001
+ARG GROUP_ID=1001
 
 # 基础镜像阶段
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS base
