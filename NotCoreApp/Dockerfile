@@ -44,13 +44,21 @@ RUN chown -R appuser:appgroup /app && \
     chmod -R 775 /app
 
 # 环境变量
-ENV APP_DLL=NotApp.dll                                  # 运行主程序
-ENV TZ=Asia/Shanghai                                    # 设置中国时区
-ENV LC_ALL=zh_CN.UTF-8                                  # 中文语言
-ENV LANG=zh_CN.UTF-8                                    # 中文语言
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false         # 禁止全球化时区
-ENV ASPNETCORE_HTTP_PORTS=''                            # 赋空值
-ENV DOTNET_RUNNING_IN_CONTAINER=true                    # 表示是在容器中运行
+
+# 运行主程序
+ENV APP_DLL=NotApp.dll
+# 设置中国时区
+ENV TZ=Asia/Shanghai
+# 中文语言
+ENV LC_ALL=zh_CN.UTF-8
+# 中文语言
+ENV LANG=zh_CN.UTF-8
+# 禁止全球化时区
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+# 赋空值
+ENV ASPNETCORE_HTTP_PORTS=''
+# 表示是在容器中运行
+ENV DOTNET_RUNNING_IN_CONTAINER=true
 
 # 验证ICU安装
 RUN dotnet --info | grep -A5 "Globalization"
