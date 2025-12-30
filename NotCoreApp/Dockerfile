@@ -6,13 +6,15 @@ ARG DOTNET_VERSION=10.0
 # 基础镜像阶段
 FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS base
 
-# 完整全球化支持
-RUN apk add --no-cache \
-    icu-libs \
-    icu-data-full \
-    tzdata \
-    curl \
-    bash
+# 检测操作系统并安装相应包 - 完整全球化支持
+RUN if [ -f /etc/alpine-release ]; then \
+        apk add --no-cache \
+        icu-libs \
+        icu-data-full \
+        tzdata \
+        curl \
+        bash; \
+    fi
 
 # 设置时区
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
@@ -59,9 +61,6 @@ ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 ENV ASPNETCORE_HTTP_PORTS=''
 # 表示是在容器中运行
 ENV DOTNET_RUNNING_IN_CONTAINER=true
-
-# 验证ICU安装
-RUN dotnet --info | grep -A5 "Globalization"
 
 # 暴露端口
 EXPOSE 8080
