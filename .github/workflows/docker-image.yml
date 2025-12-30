@@ -24,8 +24,9 @@ jobs:
   build-multi-version:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
-        dotnet_version: ['6.0', '7.0', '8.0', '9.0', '10.0']
+        dotnet_version: ['6.0', '6.0-alpine', '7.0', '7.0-alpine', '8.0', '8.0-alpine', '9.0', '9.0-alpine', '10.0', '10.0-alpine']
       fail-fast: false
     
     steps:
@@ -48,13 +49,6 @@ jobs:
         run: |
           VERSION=${{ matrix.dotnet_version }}
           echo "TAGS=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$VERSION" >> $GITHUB_OUTPUT
-          
-          # 如果是10.0，同时打latest标签
-          if [ "$VERSION" = env.Max_Version ]; then
-            echo "LATEST_TAG=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest" >> $GITHUB_OUTPUT
-          else
-            echo "LATEST_TAG=" >> $GITHUB_OUTPUT
-          fi
 
       - name: Build Docker image
         run: |
@@ -65,19 +59,9 @@ jobs:
             --build-arg DOTNET_VERSION=$VERSION \
             -t ${{ steps.tags.outputs.TAGS }} \
             ${{ env.DOCKERFILE_DIR }}
-          
-          # 如果是10.0，也打latest标签
-          if [ "$VERSION" = env.Max_Version ]; then
-            docker tag ${{ steps.tags.outputs.TAGS }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          fi
 
       - name: Push Docker image
         if: github.event.inputs.push == 'true'
         run: |
           # 推送版本标签
           docker push ${{ steps.tags.outputs.TAGS }}
-          
-          # 如果是10.0，推送latest标签
-          if [ "${{ matrix.dotnet_version }}" = env.Max_Version ]; then
-            docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          fi
