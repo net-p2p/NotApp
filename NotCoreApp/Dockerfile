@@ -17,9 +17,25 @@ RUN if [ -f /etc/alpine-release ]; then \
         tzdata; \
     fi
 
+# 环境变量
+
+# 运行主程序
+ENV APP_DLL=NotApp.dll
+# 设置中国时区
+ENV TZ=Asia/Shanghai
+# 中文语言
+ENV LC_ALL=zh_CN.UTF-8
+ENV LANG=zh_CN.UTF-8
+# 禁止全球化时区
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+# 赋空值 覆盖掉
+ENV ASPNETCORE_HTTP_PORTS=''
+# 表示是在容器中运行
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+
 # 设置时区
-RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo "Asia/Shanghai" > /etc/timezone
+RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
+    echo "${TZ}" > /etc/timezone
 
 # 需要重新声明 ARG 才能在这个阶段使用
 ARG USER_ID
@@ -60,27 +76,14 @@ RUN mkdir -p \
 RUN chown -R ${USER_ID}:${GROUP_ID} /app && \
     chmod -R 775 /app
 
-# 环境变量
-
-# 运行主程序
-ENV APP_DLL=NotApp.dll
-# 设置中国时区
-ENV TZ=Asia/Shanghai
-# 中文语言
-ENV LC_ALL=zh_CN.UTF-8
-ENV LANG=zh_CN.UTF-8
-# 禁止全球化时区
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
-# 赋空值 覆盖掉
-ENV ASPNETCORE_HTTP_PORTS=''
-# 表示是在容器中运行
-ENV DOTNET_RUNNING_IN_CONTAINER=true
-
 # 暴露端口
 EXPOSE 8080
 
 # 切换到应用用户
 USER ${USER_ID}
+
+# 指定挂载数据
+VOLUME ["/app"]
 
 # 启动应用
 ENTRYPOINT dotnet "${APP_DLL}"
