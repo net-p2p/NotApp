@@ -85,5 +85,6 @@ USER ${USER_ID}
 # 指定挂载数据
 VOLUME ["/app"]
 
-# 启动应用
-ENTRYPOINT dotnet "${APP_DLL}"
+# 启动应用 支持参数传递
+#ENTRYPOINT dotnet "${APP_DLL}"
+ENTRYPOINT ["/bin/sh", "-c", "dotnet \"${APP_DLL}\" \"$@\"", "--"]
