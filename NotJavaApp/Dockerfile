@@ -41,10 +41,10 @@ RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
 ARG USER_ID
 ARG GROUP_ID
 
-# 创建用户组（Alpine / Debian 分别处理）
+# 创建用户组（Alpine / Amazon Linux 分别处理）
 RUN set -eux; \
     if [ -f /etc/alpine-release ]; then \
-        # Alpine：BusyBox 自带 addgroup/adduser，无需安装 shadow
+        # Alpine：BusyBox 自带 addgroup/adduser
         if ! getent group ${GROUP_ID} >/dev/null 2>&1; then \
             addgroup -g ${GROUP_ID} appgroup; \
         fi; \
@@ -53,9 +53,8 @@ RUN set -eux; \
             adduser -D -u ${USER_ID} -G "$GROUP_NAME" appuser; \
         fi; \
     else \
-        # Debian：先装 passwd 包，再用绝对路径调用
-        apt-get update && apt-get install -y --no-install-recommends passwd; \
-        rm -rf /var/lib/apt/lists/*; \
+        # Amazon Linux：安装 shadow-utils 后用绝对路径调用
+        yum install -y shadow-utils && yum clean all; \
         if ! getent group ${GROUP_ID} >/dev/null 2>&1; then \
             /usr/sbin/groupadd -g ${GROUP_ID} appgroup; \
         fi; \
