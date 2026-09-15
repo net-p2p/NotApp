@@ -41,10 +41,16 @@ RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
 ARG USER_ID
 ARG GROUP_ID
 
-# 创建用户组（兼容Alpine和Debian/AmazonLinux）
+# 创建用户组（兼容 Alpine 和 Debian）
 RUN set -eux; \
+    if [ -f /etc/alpine-release ]; then \
+        apk add --no-cache shadow; \
+    else \
+        apt-get update && apt-get install -y --no-install-recommends passwd; \
+        rm -rf /var/lib/apt/lists/*; \
+    fi; \
     \
-    # 确保 GID 1000 存在
+    # 确保 GID 存在
     if ! getent group ${GROUP_ID} >/dev/null 2>&1; then \
         if [ -f /etc/alpine-release ]; then \
             addgroup -g ${GROUP_ID} appgroup; \
@@ -53,7 +59,7 @@ RUN set -eux; \
         fi; \
     fi; \
     \
-    # 确保 UID 1000 存在（名字不重要）
+    # 确保 UID 存在
     if ! getent passwd ${USER_ID} >/dev/null 2>&1; then \
         if [ -f /etc/alpine-release ]; then \
             GROUP_NAME="$(getent group ${GROUP_ID} | cut -d: -f1)"; \
