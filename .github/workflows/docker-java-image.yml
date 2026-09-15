@@ -1,0 +1,67 @@
+name: Docker Build Java-Multi-version
+
+on:
+  workflow_dispatch:  # 手动触发
+    inputs:
+      versions:
+        description: '生成多版本'
+        required: false
+        default: '8-21'
+        type: string
+      push:
+        description: 'Push to registry'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/notjava
+  DOCKERFILE_DIR: NotJavaApp
+  Max_Version: '21'
+
+jobs:
+  build-multi-version:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        java_version: ['8', '17', '21']
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event.inputs.push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Generate tags
+        id: tags
+        run: |
+          VERSION=${{ matrix.java_version }}
+          echo "TAGS=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          VERSION=${{ matrix.java_version }}
+
+          # 使用ARG传递Java版本
+          docker build \
+            --build-arg JAVA_VERSION=$VERSION \
+            -t ${{ steps.tags.outputs.TAGS }} \
+            ${{ env.DOCKERFILE_DIR }}
+
+      - name: Push Docker image
+        if: github.event.inputs.push == 'true'
+        run: |
+          # 推送版本标签
+          docker push ${{ steps.tags.outputs.TAGS }}
