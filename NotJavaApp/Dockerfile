@@ -37,31 +37,28 @@ ENV JAVA_RUNNING_IN_CONTAINER=true
 RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
     echo "${TZ}" > /etc/timezone
 
-# 需要重新声明 ARG 才能在这个阶段使用
+# 需要重新声明 ARG
 ARG USER_ID
 ARG GROUP_ID
 
-# 创建用户组（兼容 Alpine 和 Debian）
+# 创建用户组（Alpine / Debian 分别处理）
 RUN set -eux; \
     if [ -f /etc/alpine-release ]; then \
-        apk add --no-cache shadow; \
-        \
+        # Alpine：BusyBox 自带 addgroup/adduser，无需安装 shadow
         if ! getent group ${GROUP_ID} >/dev/null 2>&1; then \
             addgroup -g ${GROUP_ID} appgroup; \
         fi; \
-        \
         if ! getent passwd ${USER_ID} >/dev/null 2>&1; then \
             GROUP_NAME="$(getent group ${GROUP_ID} | cut -d: -f1)"; \
             adduser -D -u ${USER_ID} -G "$GROUP_NAME" appuser; \
         fi; \
     else \
+        # Debian：先装 passwd 包，再用绝对路径调用
         apt-get update && apt-get install -y --no-install-recommends passwd; \
         rm -rf /var/lib/apt/lists/*; \
-        \
         if ! getent group ${GROUP_ID} >/dev/null 2>&1; then \
             /usr/sbin/groupadd -g ${GROUP_ID} appgroup; \
         fi; \
-        \
         if ! getent passwd ${USER_ID} >/dev/null 2>&1; then \
             /usr/sbin/useradd -u ${USER_ID} -g ${GROUP_ID} -m -s /bin/bash appuser; \
         fi; \
