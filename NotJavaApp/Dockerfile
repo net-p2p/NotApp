@@ -1,13 +1,13 @@
-# NotCore - 预配置权限的 .NET 运行容器
+# NotJavaApp - 预配置权限的 Java 运行容器
 
-# 使用ARG传递.NET版本
-ARG DOTNET_VERSION=10.0
+# 使用ARG传递Java版本
+ARG JAVA_VERSION=17
 # 创建应用用户和组
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
 # 基础镜像阶段
-FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION} AS base
+FROM amazoncorretto:${JAVA_VERSION} AS base
 
 # 检测操作系统并安装相应包 - 完整全球化支持
 RUN if [ -f /etc/alpine-release ]; then \
@@ -19,19 +19,19 @@ RUN if [ -f /etc/alpine-release ]; then \
 
 # 环境变量
 
-# 运行主程序
-ENV APP_DLL=NotApp.dll
+# 运行主程序（jar 包名）
+ENV APP_JAR=NotApp.jar
 # 设置中国时区
 ENV TZ=Asia/Shanghai
 # 中文语言
 ENV LC_ALL=zh_CN.UTF-8
 ENV LANG=zh_CN.UTF-8
-# 禁止全球化时区
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
-# 赋空值 覆盖掉
-ENV ASPNETCORE_HTTP_PORTS=''
+# Java 编码 + 时区
+ENV JAVA_OPTS="-Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai"
+# 容器默认端口 8080
+ENV SERVER_PORT=8080
 # 表示是在容器中运行
-ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV JAVA_RUNNING_IN_CONTAINER=true
 
 # 设置时区
 RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
@@ -41,7 +41,7 @@ RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
 ARG USER_ID
 ARG GROUP_ID
 
-# 创建用户组（兼容Alpine和Debian）
+# 创建用户组（兼容Alpine和Debian/AmazonLinux）
 RUN set -eux; \
     \
     # 确保 GID 1000 存在
@@ -86,5 +86,5 @@ USER ${USER_ID}
 VOLUME ["/app"]
 
 # 启动应用 支持参数传递
-#ENTRYPOINT dotnet "${APP_DLL}"
-ENTRYPOINT ["/bin/sh", "-c", "dotnet \"${APP_DLL}\" \"$@\"", "--"]
+#ENTRYPOINT java ${JAVA_OPTS} -jar "${APP_JAR}"
+ENTRYPOINT ["/bin/sh", "-c", "java ${JAVA_OPTS} -jar \"${APP_JAR}\" \"$@\"", "--"]
