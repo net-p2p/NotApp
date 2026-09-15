@@ -18,7 +18,7 @@ env:
   REGISTRY: docker.io
   IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/notjava
   DOCKERFILE_DIR: NotJavaApp
-  Max_Version: '21'
+  Max_Version: '25'
 
 jobs:
   build-multi-version:
