@@ -6,7 +6,7 @@ on:
       versions:
         description: '生成多版本'
         required: false
-        default: '8-21'
+        default: '8-25'
         type: string
       push:
         description: 'Push to registry'
