@@ -45,27 +45,25 @@ ARG GROUP_ID
 RUN set -eux; \
     if [ -f /etc/alpine-release ]; then \
         apk add --no-cache shadow; \
+        \
+        if ! getent group ${GROUP_ID} >/dev/null 2>&1; then \
+            addgroup -g ${GROUP_ID} appgroup; \
+        fi; \
+        \
+        if ! getent passwd ${USER_ID} >/dev/null 2>&1; then \
+            GROUP_NAME="$(getent group ${GROUP_ID} | cut -d: -f1)"; \
+            adduser -D -u ${USER_ID} -G "$GROUP_NAME" appuser; \
+        fi; \
     else \
         apt-get update && apt-get install -y --no-install-recommends passwd; \
         rm -rf /var/lib/apt/lists/*; \
-    fi; \
-    \
-    # 确保 GID 存在
-    if ! getent group ${GROUP_ID} >/dev/null 2>&1; then \
-        if [ -f /etc/alpine-release ]; then \
-            addgroup -g ${GROUP_ID} appgroup; \
-        else \
-            groupadd -g ${GROUP_ID} appgroup; \
+        \
+        if ! getent group ${GROUP_ID} >/dev/null 2>&1; then \
+            /usr/sbin/groupadd -g ${GROUP_ID} appgroup; \
         fi; \
-    fi; \
-    \
-    # 确保 UID 存在
-    if ! getent passwd ${USER_ID} >/dev/null 2>&1; then \
-        if [ -f /etc/alpine-release ]; then \
-            GROUP_NAME="$(getent group ${GROUP_ID} | cut -d: -f1)"; \
-            adduser -D -u ${USER_ID} -G "$GROUP_NAME" appuser; \
-        else \
-            useradd -u ${USER_ID} -g ${GROUP_ID} -m -s /bin/bash appuser; \
+        \
+        if ! getent passwd ${USER_ID} >/dev/null 2>&1; then \
+            /usr/sbin/useradd -u ${USER_ID} -g ${GROUP_ID} -m -s /bin/bash appuser; \
         fi; \
     fi
 
