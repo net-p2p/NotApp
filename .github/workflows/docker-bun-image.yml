@@ -1,0 +1,67 @@
+name: Docker Build Multi-version (Bun)
+
+on:
+  workflow_dispatch:  # 手动触发
+    inputs:
+      versions:
+        description: '生成多版本'
+        required: false
+        default: 'latest'
+        type: string
+      push:
+        description: 'Push to registry'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/notbun
+  DOCKERFILE_DIR: NotBunApp
+  Max_Version: 'latest'
+
+jobs:
+  build-multi-version:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        bun_version: ['latest']
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        if: github.event.inputs.push == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Generate tags
+        id: tags
+        run: |
+          VERSION=${{ matrix.bun_version }}
+          echo "TAGS=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          VERSION=${{ matrix.bun_version }}
+
+          # 使用ARG传递Bun版本
+          docker build \
+            --build-arg BUN_VERSION=$VERSION \
+            -t ${{ steps.tags.outputs.TAGS }} \
+            ${{ env.DOCKERFILE_DIR }}
+
+      - name: Push Docker image
+        if: github.event.inputs.push == 'true'
+        run: |
+          # 推送版本标签
+          docker push ${{ steps.tags.outputs.TAGS }}
