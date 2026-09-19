@@ -8,13 +8,15 @@
 
 | 语言 | 目录 | 镜像名 | 版本矩阵 | 基础镜像 |
 |------|------|--------|----------|----------|
-| .NET | `NotApp` | `notapp` | 6.0 / 7.0 / 8.0 / ... | `mcr.microsoft.com/dotnet/aspnet` |
+| .NET | `NotCoreApp` | `notapp` | 6.0 / 7.0 / 8.0 / ... | `mcr.microsoft.com/dotnet/aspnet` |
 | Java | `NotJavaApp` | `notjava` | 8 / 11 / 17 / 21 / 25 | `amazoncorretto` |
 | Python | `NotPythonApp` | `notpython` | 3.9 / 3.10 / 3.11 / 3.12 / 3.13 | `python` |
 | Node | `NotNodeApp` | `notnode` | 20 / 22 / 24 | `node` |
 | Ruby | `NotRubyApp` | `notruby` | 3.1 / 3.2 / 3.3 / 3.4 | `ruby` |
 | Deno | `NotDenoApp` | `notdeno` | latest | `denoland/deno` |
+| Bun | `NotBunApp` | `notbun` | latest | `oven/bun` |
 | Go | `NotGoApp` | `notgo` | 无 | `alpine` |
+| Rust | `NotRustApp` | `notrust` | 无 | `alpine` |
 
 > 命名规则：**目录带 `App`，镜像名不带。**
 
@@ -89,7 +91,25 @@ docker run -d \
 | Node | `APP_JS` | `NotApp.js` | `node NotApp.js` |
 | Ruby | `APP_RB` | `NotApp.rb` | `ruby NotApp.rb` |
 | Deno | `APP_TS` | `NotApp.ts` | `deno run --allow-all NotApp.ts` |
+| Bun | `APP_TS` | `NotApp.ts` | `bun run NotApp.ts` |
 | Go | `APP_BIN` | `NotApp` | `/app/NotApp` |
+| Rust | `APP_BIN` | `NotApp` | `/app/NotApp` |
+
+---
+
+## 各语言版本矩阵
+
+| 语言 | 版本 | 说明 |
+|------|------|------|
+| .NET | 6.0 / 7.0 / 8.0 / ... | 跟随微软官方 LTS |
+| Java | 8 / 11 / 17 / 21 / 25 | Corretto LTS |
+| Python | 3.9 / 3.10 / 3.11 / 3.12 / 3.13 | 官方稳定版 |
+| Node | 20 / 22 / 24 | 当前 LTS + 最新 |
+| Ruby | 3.1 / 3.2 / 3.3 / 3.4 | 官方稳定版 |
+| Deno | latest | 无矩阵，跟随最新 |
+| Bun | latest | 无矩阵，跟随最新 |
+| Go | 无 | 编译型，二进制自带运行时 |
+| Rust | 无 | 编译型，二进制自带运行时 |
 
 ---
 
@@ -102,7 +122,7 @@ docker run -d \
 | `{版本}` | 默认（Debian / Amazon Linux） | `notjava:17`、`notpython:3.12` |
 | `{版本}-alpine` | Alpine | `notjava:17-alpine`、`notpython:3.12-alpine` |
 
-> Go 例外：没有版本矩阵，标签为 `alpine`。
+> Go 和 Rust 例外：没有版本矩阵，标签为 `alpine`。
 
 ---
 
@@ -112,12 +132,15 @@ docker run -d \
 
 ```
 .github/workflows/
-├── build-java.yml
-├── build-python.yml
-├── build-node.yml
-├── build-ruby.yml
-├── build-deno.yml
-└── build-go.yml
+├── docker-net-image.yml
+├── docker-java-image.yml
+├── docker-python-image.yml
+├── docker-node-image.yml
+├── docker-ruby-image.yml
+├── docker-deno-image.yml
+├── docker-bun-image.yml
+├── docker-go-image.yml
+└── docker-rust-image.yml
 ```
 
 **手动触发方式**：仓库 Actions 页面 → 选择对应 workflow → Run workflow。
@@ -142,7 +165,14 @@ docker build \
   NotJavaApp/
 ```
 
-其他语言把 `JAVA_VERSION` 换成对应的 `PYTHON_VERSION`、`NODE_VERSION`、`RUBY_VERSION`、`DENO_VERSION`。
+其他语言把 `JAVA_VERSION` 换成对应的 `PYTHON_VERSION`、`NODE_VERSION`、`RUBY_VERSION`、`DENO_VERSION`、`BUN_VERSION`。
+
+Go 和 Rust 没有版本参数，直接构建：
+
+```bash
+docker build -t notgo:alpine NotGoApp/
+docker build -t notrust:alpine NotRustApp/
+```
 
 ---
 
@@ -152,13 +182,16 @@ docker build \
 仓库根/
 ├── .github/
 │   └── workflows/
-│       ├── build-java.yml
-│       ├── build-python.yml
-│       ├── build-node.yml
-│       ├── build-ruby.yml
-│       ├── build-deno.yml
-│       └── build-go.yml
-├── NotApp/
+│       ├── docker-net-image.yml
+│       ├── docker-java-image.yml
+│       ├── docker-python-image.yml
+│       ├── docker-node-image.yml
+│       ├── docker-ruby-image.yml
+│       ├── docker-deno-image.yml
+│       ├── docker-bun-image.yml
+│       ├── docker-go-image.yml
+│       └── docker-rust-image.yml
+├── NotCoreApp/
 │   └── Dockerfile
 ├── NotJavaApp/
 │   └── Dockerfile
@@ -170,7 +203,11 @@ docker build \
 │   └── Dockerfile
 ├── NotDenoApp/
 │   └── Dockerfile
-└── NotGoApp/
+├── NotBunApp/
+│   └── Dockerfile
+├── NotGoApp/
+│   └── Dockerfile
+└── NotRustApp/
     └── Dockerfile
 ```
 
@@ -215,7 +252,22 @@ FROM ni-xue/notgo:alpine
 COPY --from=builder /build/NotApp /app/NotApp
 ```
 
-**4. Action 版本**
+**4. Rust 需要 musl 编译**
+
+Rust 二进制要用 musl target 编译，才能在 Alpine 里跑。典型多阶段构建：
+
+```dockerfile
+FROM rust:1.83-alpine AS builder
+RUN apk add --no-cache musl-dev
+WORKDIR /build
+COPY . .
+RUN cargo build --release --target x86_64-unknown-linux-musl
+
+FROM ni-xue/notrust:alpine
+COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/NotApp /app/NotApp
+```
+
+**5. Action 版本**
 
 CI 里用的是 `actions/checkout@v7`、`docker/setup-buildx-action@v4`、`docker/login-action@v4`，已适配 Node 24。如果你的仓库里这些版本不可用，回退到 `@v4`、`@v3` 也能跑。
 
@@ -227,13 +279,11 @@ CI 里用的是 `actions/checkout@v7`、`docker/setup-buildx-action@v4`、`docke
 
 1. 新建目录 `NotPhpApp/`
 2. 写 Dockerfile，遵守统一设计原则（非 root、中文时区、`/app` 目录、VOLUME、参数透传）
-3. 新建 `.github/workflows/build-php.yml`，参考现有 workflow 改语言和版本矩阵
+3. 新建 `.github/workflows/docker-php-image.yml`，参考现有 workflow 改语言和版本矩阵
 4. 更新本 README 的表格
 
 ---
 
 ## 一句话总结
 
-**一套容器模板，覆盖七种语言，部署任何应用都是「拉镜像 + 挂目录 + 加参数」三步。**
-
----
+**一套容器模板，覆盖九种语言，部署任何应用都是「拉镜像 + 挂目录 + 加参数」三步。**
