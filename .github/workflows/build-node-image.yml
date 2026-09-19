@@ -1,0 +1,71 @@
+name: Docker Build Multi-version (Node)
+
+on:
+  workflow_dispatch:  # 手动触发
+    inputs:
+      versions:
+        description: '生成多版本'
+        required: false
+        default: '20-24'
+        type: string
+      push:
+        description: 'Push to registry'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/notnode
+  DOCKERFILE_DIR: NotNodeApp
+  Max_Version: '24'
+
+jobs:
+  build-multi-version:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        node_version: [
+          '20', '20-alpine',
+          '22', '22-alpine',
+          '24', '24-alpine'
+        ]
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        if: github.event.inputs.push == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Generate tags
+        id: tags
+        run: |
+          VERSION=${{ matrix.node_version }}
+          echo "TAGS=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          VERSION=${{ matrix.node_version }}
+
+          # 使用ARG传递Node版本
+          docker build \
+            --build-arg NODE_VERSION=$VERSION \
+            -t ${{ steps.tags.outputs.TAGS }} \
+            ${{ env.DOCKERFILE_DIR }}
+
+      - name: Push Docker image
+        if: github.event.inputs.push == 'true'
+        run: |
+          # 推送版本标签
+          docker push ${{ steps.tags.outputs.TAGS }}
