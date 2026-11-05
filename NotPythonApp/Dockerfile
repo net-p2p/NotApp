@@ -88,4 +88,5 @@ USER ${USER_ID}
 VOLUME ["/app"]
 
 # 启动应用 支持参数传递
-ENTRYPOINT ["/bin/sh", "-c", "python \"${APP_PY}\" \"$@\"", "--"]
+#ENTRYPOINT ["/bin/sh", "-c", "python \"${APP_PY}\" \"$@\"", "--"]
+ENTRYPOINT ["/bin/sh", "-c", "exec python \"${APP_PY}\" \"$@\"", "--"]
