@@ -89,4 +89,5 @@ USER ${USER_ID}
 VOLUME ["/app"]
 
 # 启动应用 支持参数传递
-ENTRYPOINT ["/bin/sh", "-c", "ruby \"${APP_RB}\" \"$@\"", "--"]
+#ENTRYPOINT ["/bin/sh", "-c", "ruby \"${APP_RB}\" \"$@\"", "--"]
+ENTRYPOINT ["/bin/sh", "-c", "exec ruby \"${APP_RB}\" \"$@\"", "--"]
