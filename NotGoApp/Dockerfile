@@ -69,4 +69,5 @@ USER ${USER_ID}
 VOLUME ["/app"]
 
 # 启动应用 支持参数传递
-ENTRYPOINT ["/bin/sh", "-c", "/app/${APP_BIN} \"$@\"", "--"]
+#ENTRYPOINT ["/bin/sh", "-c", "/app/${APP_BIN} \"$@\"", "--"]
+ENTRYPOINT ["/bin/sh", "-c", "exec \"/app/${APP_BIN}\" \"$@\"", "--"]
