@@ -90,4 +90,5 @@ USER ${USER_ID}
 VOLUME ["/app"]
 
 # 启动应用 支持参数传递
-ENTRYPOINT ["/bin/sh", "-c", "deno run --allow-all \"${APP_TS}\" \"$@\"", "--"]
+#ENTRYPOINT ["/bin/sh", "-c", "deno run --allow-all \"${APP_TS}\" \"$@\"", "--"]
+ENTRYPOINT ["/bin/sh", "-c", "exec deno run --allow-all \"${APP_TS}\" \"$@\"", "--"]
