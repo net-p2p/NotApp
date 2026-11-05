@@ -87,4 +87,5 @@ VOLUME ["/app"]
 
 # 启动应用 支持参数传递
 #ENTRYPOINT dotnet "${APP_DLL}"
-ENTRYPOINT ["/bin/sh", "-c", "dotnet \"${APP_DLL}\" \"$@\"", "--"]
+#ENTRYPOINT ["/bin/sh", "-c", "dotnet \"${APP_DLL}\" \"$@\"", "--"]
+ENTRYPOINT ["/bin/sh", "-c", "target=\"${APP_DLL}\"; case \"$target\" in *.dll) exec dotnet \"$target\" \"$@\" ;; *) exec \"$target\" \"$@\" ;; esac", "--"]
