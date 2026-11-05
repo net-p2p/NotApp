@@ -87,4 +87,5 @@ USER ${USER_ID}
 VOLUME ["/app"]
 
 # 启动应用 支持参数传递
-ENTRYPOINT ["/bin/sh", "-c", "bun run \"${APP_TS}\" \"$@\"", "--"]
+#ENTRYPOINT ["/bin/sh", "-c", "bun run \"${APP_TS}\" \"$@\"", "--"]
+ENTRYPOINT ["/bin/sh", "-c", "exec bun run \"${APP_TS}\" \"$@\"", "--"]
