@@ -88,3 +88,4 @@ VOLUME ["/app"]
 # 启动应用 支持参数传递
 #ENTRYPOINT java ${JAVA_OPTS} -jar "${APP_JAR}"
 ENTRYPOINT ["/bin/sh", "-c", "java ${JAVA_OPTS} -jar \"${APP_JAR}\" \"$@\"", "--"]
+ENTRYPOINT ["/bin/sh", "-c", "exec java ${JAVA_OPTS} -jar \"${APP_JAR}\" \"$@\"", "--"]
